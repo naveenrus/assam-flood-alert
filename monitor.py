@@ -23,13 +23,43 @@ yesterday = (
 
 def download_report(report_type, output_file):
 
-    page = session.get(
-        f"https://sdrf.assam.gov.in/dfr/download?type={report_type}",
-        verify=False,
-        timeout=60
+    print(
+        f"Downloading {report_type} report..."
     )
 
-    soup = BeautifulSoup(page.text, "html.parser")
+    # =====================================
+    # GET PAGE WITH RETRY
+    # =====================================
+
+    for attempt in range(3):
+
+        try:
+
+            page = session.get(
+                f"https://sdrf.assam.gov.in/dfr/download?type={report_type}",
+                verify=False,
+                timeout=180
+            )
+
+            print(
+                "Connected to SDRF website"
+            )
+
+            break
+
+        except Exception as e:
+
+            print(
+                f"GET Attempt {attempt+1} failed: {e}"
+            )
+
+            if attempt == 2:
+                raise
+
+    soup = BeautifulSoup(
+        page.text,
+        "html.parser"
+    )
 
     token = soup.find(
         "input",
@@ -42,18 +72,46 @@ def download_report(report_type, output_file):
         "date": yesterday
     }
 
-    pdf = session.post(
-        "https://sdrf.assam.gov.in/dfr/download",
-        data=payload,
-        verify=False,
-        timeout=120
-    )
+    # =====================================
+    # DOWNLOAD PDF WITH RETRY
+    # =====================================
 
-    with open(output_file, "wb") as f:
+    for attempt in range(3):
+
+        try:
+
+            pdf = session.post(
+                "https://sdrf.assam.gov.in/dfr/download",
+                data=payload,
+                verify=False,
+                timeout=180
+            )
+
+            print(
+                "PDF Download Success"
+            )
+
+            break
+
+        except Exception as e:
+
+            print(
+                f"POST Attempt {attempt+1} failed: {e}"
+            )
+
+            if attempt == 2:
+                raise
+
+    with open(
+        output_file,
+        "wb"
+    ) as f:
+
         f.write(pdf.content)
 
-    print(f"Downloaded: {output_file}")
-
+    print(
+        f"Downloaded: {output_file}"
+    )
 
 # ====================================================
 # PDF TO TEXT
