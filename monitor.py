@@ -1,26 +1,19 @@
+import os
 import smtplib
 from email.mime.text import MIMEText
 
-body = f"""
-Flood Districts:
-{chr(10).join(districts)}
+EMAIL_USER = os.environ["EMAIL_USER"]
+EMAIL_PASS = os.environ["EMAIL_PASS"]
+EMAIL_TO = os.environ["EMAIL_TO"]
 
-Heavy Rainfall:
+msg = MIMEText("GitHub Actions email test successful!")
 
-{chr(10).join([f"{s} : {r} mm" for s,r in heavy])}
-"""
-
-msg = MIMEText(body)
-
-msg["Subject"] = "🚨 Assam Flood Alert"
+msg["Subject"] = "Assam Flood Alert Test"
 msg["From"] = EMAIL_USER
 msg["To"] = EMAIL_TO
 
-with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
-
-    server.login(
-        EMAIL_USER,
-        EMAIL_PASS
-    )
-
+with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+    server.login(EMAIL_USER, EMAIL_PASS)
     server.send_message(msg)
+
+print("Email Sent Successfully")
